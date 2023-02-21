@@ -64,3 +64,22 @@ func (s *Service) SyncCommitteeAtEpoch(ctx context.Context, stateID string, epoc
 
 	return resp.Data, nil
 }
+
+// SyncCommitteeAtSlot fetches the sync committee for the given slot at the given state.
+func (s *Service) SyncCommitteeAtSlot(ctx context.Context, stateID string, slot phase0.Slot) (*api.SyncCommittee, error) {
+	url := fmt.Sprintf("/eth/v1/beacon/states/%s/sync_committees?slot=%d", stateID, slot)
+	respBodyReader, err := s.get(ctx, url)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to request sync committee")
+	}
+	if respBodyReader == nil {
+		return nil, errors.New("failed to obtain sync committee")
+	}
+
+	var resp syncCommitteeJSON
+	if err := json.NewDecoder(respBodyReader).Decode(&resp); err != nil {
+		return nil, errors.Wrap(err, "failed to parse sync committee")
+	}
+
+	return resp.Data, nil
+}
